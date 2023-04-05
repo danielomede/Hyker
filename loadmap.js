@@ -18,6 +18,7 @@ function initMap() {
     getLong = document.getElementById('longitudewrap').innerHTML = lng;
 
     map = new google.maps.Map(document.getElementById('map'), {
+      mapId: "5b73fae6a22953ae",
       center: {lat: lat, lng: lng},
       zoom: 18
     });
@@ -25,7 +26,13 @@ function initMap() {
     var currentPosition = new google.maps.Marker({
       position: {lat: lat, lng: lng},
       map: map,
-      icon: image,
+      icon:  {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: '#00FF00',
+      fillOpacity: 1,
+      strokeWeight: 1
+    },
       title: 'You are here'
     });
   });
@@ -33,36 +40,57 @@ function initMap() {
 
 function startTracking() {
   is_tracking = true;
-  document.getElementById("tracker").innerHTML = "<span class='spinner-border spinner-border-sm me-05' role='status' aria-hidden='true'></span> Tracking...";
-  myLat = document.getElementById('latitudewrap').innerHTML;
-  myLng = document.getElementById('longitudewrap').innerHTML;
-
+  document.getElementById("tracker").innerHTML = "<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span>";
+  document.getElementById("cancel").innerHTML = "<a type='button' onclick='cancelTracking()' id='cancel-tracker' style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' class='btn btn-danger'> <i class='material-icons'>cancel</i></a>";
+  document.getElementById("save").innerHTML = "<a type='button' onclick='endTracking()' id='cancel-tracker'style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' class='btn btn-blue '><i class='material-icons'>save</i> </a>"
+  myLat = parseFloat(document.getElementById('latitudewrap').innerHTML);
+  myLng = parseFloat(document.getElementById('longitudewrap').innerHTML);
+    
+  
+  var startPosition = { lat: myLat, lng: myLng };
+  path.push(startPosition); // add the starting position to the path array       
+  
   marker = new google.maps.Marker({
     position: {lat: myLat, lng: myLng},
     map: map,
     icon: mapIcon
   });
+  
 
   polyline = new google.maps.Polyline({
     map: map,
     path: path,
     strokeColor: '#0000FF',
-    strokeOpacity: 0.5,
+    strokeOpacity: 1,
     strokeWeight: 5
   });
+    
+  //polyline.setPath(path);
+   console.log(path);
   navigator.geolocation.watchPosition(updatePosition);
+ 
 }
+
 
 function updatePosition(position) {
   if (is_tracking) {
-    myLat = document.getElementById('latitudewrap').innerHTML;
-    myLng = document.getElementById('longitudewrap').innerHTML;
-    var newPosition = new google.maps.LatLng(myLat, myLng);
-    marker.setPosition(newPosition);
-    path.push(newPosition);
-    polyline.setPath(path);
+    
+    var myLat = position.coords.latitude;
+    var myLng = position.coords.longitude;
+    
+    if (typeof myLat === 'number' && typeof myLng === 'number') {
+       var newPosition = { lat: myLat, lng: myLng };
+      path.push(newPosition);
+      polyline.setPath(path); 
+      marker.setPosition(newPosition);
+      console.log(path);
+      
+    }
   }
 }
+
+
+
 
 function endTracking() {
   is_tracking = false;
@@ -76,5 +104,25 @@ function endTracking() {
   });
 }
 
+// Cancel tracking and remove marker and polyline
+  function cancelTracking() {
+    is_tracking = false;
+    marker.setMap(null);
+    polyline.setMap(null);
+    document.getElementById("tracker").innerHTML = "<i class='material-icons'>share_location</i> Track";
+    document.getElementById("cancel").innerHTML = "<a type='button' hidden onclick='cancelTracking()' id='cancel-tracker' style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' class='btn btn-danger'> <i class='material-icons'>cancel</i></a>";
+    document.getElementById("save").innerHTML = "<a type='button' hidden onclick='endTracking()' id='cancel-tracker' style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;'  class='btn btn-blue '><i class='material-icons'>save</i></a>"
+  }
+// * Cancel tracking and remove marker and polyline
+
+ // Stop tracking the user's location
+  function stopTracking() {
+    is_tracking = false;
+    document.getElementById("tracker").innerHTML = "<i class='material-icons'>share_location</i> Track";
+    navigator.geolocation.clearWatch(watchID);
+  }
+  // * Stop tracking the user's location
+
 window.initMap = initMap;
+
 
