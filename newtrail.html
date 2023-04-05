@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hiking App</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <button id="startTrackingButton" onclick="startTracking()">Start Tracking</button>
+    <button id="stopTrackingButton" onclick="stopTracking()">Stop Tracking</button>
+    <script>
+      var map;
+      var poly;
+      var path = [];
+      var watchId = null;
+
+      function initMap() {
+        // Create a new map centered on the user's location
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: -34.397, lng: 150.644},
+          zoom: 15
+        });
+
+        // Create a new polyline to represent the trail
+        poly = new google.maps.Polyline({
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 3
+        });
+        poly.setMap(map);
+      }
+
+      function startTracking() {
+        // Clear any existing path
+        path = [];
+        poly.setPath(path);
+
+        // Center the map on the user's location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            map.setCenter(pos);
+            map.setZoom(15);
+          }, function() {
+            // Handle errors getting the user's location
+          });
+        }
+
+        // Enable tracking the user's location
+        watchId = navigator.geolocation.watchPosition(function(position) {
+          var pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          path.push(pos);
+          poly.setPath(path);
+        }, function() {
+          // Handle errors tracking the user's location
+        }, {
+          enableHighAccuracy: true
+        });
+      }
+
+      function stopTracking() {
+        // Stop tracking the user's location
+        if (watchId != null) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+
+        // Save the path to the database
+        // (code to save path to database goes here)
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+    </script>
+  </body>
+</html>
