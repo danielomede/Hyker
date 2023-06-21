@@ -152,17 +152,16 @@
     // Convert the data to JSON format and send the request
     xhr.send(JSON.stringify(data));
   }
-
+  
   function convertStepsToCalories(stepCount, gender, height, age, weight) {
-    // Conversion formula for calories burned based on step count
-    // Adjust the values and formula according to your specific calculation
-    const caloriesPerStep = 0.05; // Calories burned per step
-    const strideLength = calculateStrideLength(height, gender); // Calculate stride length based on height and gender
-    const distanceInKm = (stepCount * strideLength) / 100000; // Convert stride length and step count to kilometers
-    const caloriesBurned = distanceInKm * caloriesPerStep * weight; // Calculate calories burned
+  const caloriesPerStep = 0.05; // Calories burned per step
+  const caloriesBurnedPerKg = 0.034; // Calories burned per kilogram per step
+  const ageFactor = age >= 18 ? 0.2017 : 0.074;
+  const caloriesBurned = stepCount * caloriesPerStep * weight * ageFactor;
 
-    return caloriesBurned;
-  }
+  return caloriesBurned;
+}
+
 
   function calculateStrideLength(height, gender) {
     // Calculation of stride length based on height and gender
