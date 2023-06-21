@@ -1,0 +1,179 @@
+ <!-- * Step counter-->    
+    <script>
+        let stepCount = 0;
+        let isCounting = false;
+        const stepThreshold = 20; // Adjusted acceleration magnitude threshold
+        
+        function startStepCounter() {
+          isCounting = true;
+        
+          // Retrieve the step count from localStorage if it exists
+          const storedStepCount = localStorage.getItem('stepCount');
+          if (storedStepCount) {
+            stepCount = parseInt(storedStepCount);
+                updateStepCountDisplay();
+                console.log('Step count retrieved from localStorage');
+          } else {
+            // The step count is not stored in localStorage, retrieve it from the server
+            saveStepCountToLocalStorage();
+          }
+        
+          // Show the step count display
+          document.getElementById('viewSteps').style.display = 'block';
+        }
+        
+        
+        function saveStepCountToLocalStorage() {
+            // Store the step count in localStorage
+            localStorage.setItem('stepCount', stepCount.toString());
+            // Additionally, send the updated step count to the server
+            sendStepCountToServer(stepCount);
+        }
+
+        
+        function saveStepCountToDatabase(stepCount) {
+              // Replace this with your actual code to save the step count to the database
+              // Make an AJAX request or use an API to send the step count data to the server
+              // Implement the necessary server-side logic to save the step count in the database
+              // Ensure proper authentication and validation measures are in place
+            
+              // Example AJAX request using jQuery:
+              $.ajax({
+                url: 'save_step_count.php',
+                method: 'POST',
+                data: { stepCount: stepCount },
+                success: function(response) {
+                  console.log('This session has been added to the database');
+                },
+                error: function(error) {
+                  console.error('Error saving to the database:', error);
+                }
+              });
+            }
+        
+        
+        
+        function stopStepCounter() {
+          isCounting = false;
+        }
+        
+        function updateStepCountDisplay() {
+          document.getElementById('stepCountDisplay').innerText = stepCount;
+          // Store the step count in localStorage
+          saveStepCountToLocalStorage(); // Update the step count in the local storage
+          
+          
+        }
+
+        
+        // New Event Listener
+        window.addEventListener("devicemotion", (event) => {
+          console.log(`${event.acceleration.x} m/s2`);
+        
+          if (isCounting) {
+            const acceleration = event.acceleration || event.accelerationIncludingGravity
+            const accelerationMagnitude = Math.sqrt(
+              Math.pow(acceleration.x, 2) +
+              Math.pow(acceleration.y, 2) +
+              Math.pow(acceleration.z, 2)
+            );
+        
+            // Detect a step based on the adjusted acceleration magnitude threshold
+            if (accelerationMagnitude > stepThreshold) {
+              stepCount++;
+              updateStepCountDisplay();
+            }
+          }
+        });
+        
+        //update stepcount
+        // Function to send step count to the server
+        function sendStepCountToServer(stepCount) {
+          // Make an HTTP request to the server-side PHP script
+          fetch('update_step_count.php', {
+            method: 'POST',
+            body: JSON.stringify({ stepCount }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => {
+            if (response.ok) {
+              // Clear the step count from localStorage
+              localStorage.removeItem('stepCount');
+              console.log('Step count updated in the database.');
+            } else {
+              console.log('Error updating step count in the database.');
+            }
+          })
+          .catch(error => {
+            console.log('Error:', error);
+          });
+        }
+        //update stepcount
+        
+        // Call saveStepCountToLocalStorage() when the page is about to be unloaded (e.g., when the user closes or refreshes the page)
+        window.addEventListener("beforeunload", () => {
+          saveStepCountToLocalStorage();
+          sendStepCountToServer(stepCount);
+        });
+    </script>
+    <!--Step counter-->
+    
+    <!-- Calorie burner -->
+    <script>
+        // Function to convert step count to calories burned
+        function convertStepsToCalories(stepCount, gender, height, age, weight) {
+          // Constants for calorie calculation
+          const STEPS_PER_CALORIE = 20; // Number of steps required to burn 1 calorie on average
+        
+          // Calculate BMR (Basal Metabolic Rate) based on gender, height, age, and weight
+          let bmr;
+          if (gender === 'male') {
+            bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+          } else {
+            bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+          }
+        
+          // Calculate total calories burned based on step count and BMR
+          const caloriesBurned = (stepCount / STEPS_PER_CALORIE) + bmr;
+        
+          return caloriesBurned;
+        }
+        
+        // Example usage
+        const gender    = '<?= $gender ?>'; // Replace with the user's gender ('male' or 'female')
+        const height    = <?= $height ?>; // Replace with the user's height in centimeters
+        const age       = <?= $age ?>; // Replace with the user's age in years
+        const weight    = <?= $weightInKg ?>; // Replace with the user's weight in kilograms
+        
+        // Simulate step count updates every second (replace with actual step count updates from your application)
+        setInterval(() => {
+          // Get the updated step count from the sensors or fitness tracking device
+          // Replace the following line with your own logic to get the real-time step count
+          // Get the updated step count from the HTML element
+          const stepCountString = document.getElementById('stepCountDisplay').innerHTML;
+          const stepCount = parseInt(stepCountString, 10);
+        
+          // Calculate calories burned based on the updated step count
+          const caloriesBurned = convertStepsToCalories(stepCount, gender, height, age, weight);
+          
+          // Update the UI or perform any other actions with the calculated calories burned value
+          // Update the UI by setting the calculated calories burned value in the viewstepCalories div
+          document.getElementById('viewstepCalories').innerHTML = caloriesBurned.toFixed(2); // Display calories with 2 decimal places
+          console.log('Calories burned:', caloriesBurned);
+        }, 1000); // Update every second
+        
+        // Simulated function to get updated step count (replace with actual implementation)
+        function getUpdatedStepCount() {
+          // Replace with your logic to get the real-time step count
+          // For the example, we'll simulate increasing the step count by a random value between 10 and 30
+          const randomStepIncrease = Math.floor(Math.random() * 21) + 10;
+          stepCount += randomStepIncrease;
+        
+          return stepCount;
+        }
+
+    </script>
+    <!-- Calorie burner -->
+
