@@ -335,7 +335,7 @@ include 'config.php';
                         <!-- MAP -->
                         <div id="map"></div>
                                                                       
-                        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiDYtaPKvXEjQYWh1qAkX5QcScfk-cCRw&callback=initMap&v=weekly" defer></script>    
+                        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCiDYtaPKvXEjQYWh1qAkX5QcScfk-cCRw&libraries=geometry&callback=initMap&v=weekly" async defer></script>    
                         <!-- * MAP -->
                             
                     <!-- Home Tab 
@@ -384,7 +384,7 @@ include 'config.php';
          
          <a type="button" onclick="startTracking()" id="tracker"
             style="display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;" 
-            class="btn btn-primary btn-block btn-lg">
+            class="btn btn-info btn-block btn-lg">
            <i class="material-icons">share_location</i>  
             Track
         </a>
@@ -398,7 +398,7 @@ include 'config.php';
         <div id="save" style="margin-left: 10px">
             <a type='button' hidden onclick='endTracking()' id='cancel-tracker'
                 style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' 
-                class='btn btn-blue '>
+                class='btn btn-dark '>
                <i class='material-icons'>save</i>  
             </a>
         </div>
@@ -527,7 +527,7 @@ function initMap() {
 
 </script> 
 
-<script>
+<script> 
 var image = "hikergreen32.png";
 var mapIcon = "hiking map32.png";
 var trailCoordinates = [];
@@ -539,7 +539,7 @@ var is_tracking = false;
 var lat;
 var lng;
 var startTime; // Declare the startTime variable in a broader scope
-
+var distance = 0;
 
 function initMap() {
   navigator.geolocation.getCurrentPosition(function(position) {
@@ -573,6 +573,8 @@ function initMap() {
 function startTracking() {
   is_tracking = true;
   startTime = new Date(); // Add this line to record the start time
+  //unhideButton("cancel");
+ // unhideButton("save");
   document.getElementById("tracker").innerHTML = "<span class='spinner-grow spinner-grow-sm' role='status' aria-hidden='true'></span>";
   document.getElementById("cancel").innerHTML = "<a type='button' onclick='cancelTracking()' id='cancel-tracker' style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' class='btn btn-danger'> <i class='material-icons'>cancel</i></a>";
   document.getElementById("save").innerHTML = "<a type='button' onclick='endTracking()' id='cancel-tracker'style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' class='btn btn-blue '><i class='material-icons'>save</i> </a>"
@@ -617,11 +619,27 @@ function updatePosition(position) {
       polyline.setPath(path); 
       marker.setPosition(newPosition);
       console.log(path);
-      
+      // Call the updateDistance() function to update the total distance covered
+      updateDistance();
     }
   }
 }
 
+// Function to calculate the distance between two points
+function calculateDistance(p1, p2) {
+  return google.maps.geometry.spherical.computeDistanceBetween(p1, p2);
+}
+
+// Function to update the total distance covered
+function updateDistance() {
+  if (path.length >= 2) {
+    var lastIndex = path.length - 1;
+    var lastPosition = path[lastIndex];
+    var secondLastPosition = path[lastIndex - 1];
+    var segmentDistance = calculateDistance(lastPosition, secondLastPosition);
+    distance += segmentDistance;
+  }
+}
 
 
 
@@ -631,25 +649,26 @@ function endTracking() {
   var latitude = lastPosition.lat;
   var longitude = lastPosition.lng;
   var endTime = new Date(); // Add this line to record the end time
-  
-   // Check if startTime is defined before calculating duration
+  // Call the updateDistance() function one last time to update the total distance covered
+  updateDistance();
+  // Check if startTime is defined before calculating duration
   if (!startTime) {
     console.error("Start time not defined");
     return;
   }
-  
+
   // Calculate the duration in milliseconds
   var duration = endTime.getTime() - startTime.getTime();
-    
+
   // Check if the duration is a valid number
   if (isNaN(duration)) {
     console.error("Invalid duration");
     return;
   }
   var thisuser = '<?= $reference ?>';
-  
+
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+  xhttp.onreadystatechange = function () {
     if (this.readyState === 4 && this.status === 200) {
       // Redirect to the trail summary page
       window.location.href = "trail-summary.php?ref=" + this.responseText;
@@ -657,14 +676,69 @@ function endTracking() {
   };
   xhttp.open("POST", "save-trail.php", true);
   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send("startingpoint=" + lat + "," + lng + "&endpoint=" + latitude + "," + longitude + "&traildata=" + JSON.stringify(path) + "&duration=" + duration + "&recordedby=" + thisuser);
-  
+  xhttp.send(
+    "startingpoint=" +
+      lat +
+      "," +
+      lng +
+      "&endpoint=" +
+      latitude +
+      "," +
+      longitude +
+      "&traildata=" +
+      JSON.stringify(path) +
+      "&duration=" +
+      duration +
+      "&recordedby=" +
+      thisuser +
+      "&distance=" +
+      distance
+  );
+
+  // Create the endMarker with the map property set to the current map object
   var endMarker = new google.maps.Marker({
     position: lastPosition,
-    map: mapIcon
+    map: map, // Set the map property to the current map object
+    icon: mapIcon,
   });
-  
+
+  // Reset the distance variable for the next tracking session
+  distance = 0;
 }
+
+// Function to enable a button
+function enableButton(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button) {
+    button.disabled = false;
+  }
+}
+
+// Function to disable a button
+function disableButton(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button) {
+    button.disabled = true;
+  }
+}
+
+// Function to hide a button
+function hideButton(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button) {
+    button.style.display = "none";
+  }
+}
+
+// Function to unhide a button
+function unhideButton(buttonId) {
+  var button = document.getElementById(buttonId);
+  if (button) {
+    button.style.display = "inline-block";
+  }
+}
+
+
 
 // Cancel tracking and remove marker and polyline
   function cancelTracking() {
@@ -674,6 +748,12 @@ function endTracking() {
     document.getElementById("tracker").innerHTML = "<i class='material-icons'>share_location</i> Track";
     document.getElementById("cancel").innerHTML = "<a type='button' hidden onclick='cancelTracking()' id='cancel-tracker' style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;' class='btn btn-danger'> <i class='material-icons'>cancel</i></a>";
     document.getElementById("save").innerHTML = "<a type='button' hidden onclick='endTracking()' id='cancel-tracker' style='display: flex;flex-direction: column-reverse;flex-wrap: wrap;align-content: center;'  class='btn btn-blue '><i class='material-icons'>save</i></a>"
+    //unhideButton("tracker");
+    //hideButton("cancel");
+    //hideButton("save");
+    path = [];
+    polyline.setPath(path);
+    
   }
 // * Cancel tracking and remove marker and polyline
 
