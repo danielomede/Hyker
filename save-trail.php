@@ -19,23 +19,27 @@ $endPoint = $_POST['endpoint'];
 $trailData = $_POST['traildata'];
 $duration = $_POST['duration'];
 $recordedBy = $_POST['recordedby'];
+$distance = $_POST['distance'];
 
 // Generate a random trail reference code
 $reference = "TR" . generateRandomCode(10);
 
 // Prepare the SQL statement to insert the trail data into the 'trails' table
-$stmt = $conn->prepare("INSERT INTO trails (startpoint, traildata, endpoint, duration, recordedby, reference) VALUES (:startpoint, :traildata, :endpoint, :duration, :recordedby, :reference)");
+$stmt = $conn->prepare("INSERT INTO trails (startpoint, traildata, endpoint, duration, distance, recordedby, reference) VALUES (:startpoint, :traildata, :endpoint, :duration, :distance, :recordedby, :reference)");
 
 // Bind the parameters
 $stmt->bindParam(':startpoint', $startingPoint);
 $stmt->bindParam(':traildata', $trailData);
 $stmt->bindParam(':endpoint', $endPoint);
 $stmt->bindParam(':duration', $duration);
+$stmt->bindParam(':distance', $distance); // Corrected binding for $distance
 $stmt->bindParam(':recordedby', $recordedBy);
 $stmt->bindParam(':reference', $reference);
 
 // Execute the statement
 $stmt->execute();
+
+
 
 // Get the last inserted trail ID
 $trailId = $conn->lastInsertId();
