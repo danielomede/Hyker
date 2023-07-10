@@ -1,4 +1,4 @@
- var image = "hyk.png";
+var image = "hyk.png";
     var mapIcon = "hiking map32.png";
     var trailCoordinates = [];
     var map;
@@ -97,12 +97,52 @@
             });
         }
         
-        // Function to handle marker click event
         function handleMarkerClick(trail) {
-          // Handle the click event for the marker, e.g., show trail details
-          console.log("Trail clicked:", trail);
+  const startpoint = trail.startpoint;
+  
+          // Fetch complete trail details based on the startpoint
+          fetchTrailDetails(startpoint)
+            .then(trailDetails => {
+              // Get the modal and details container
+              const modal = document.getElementById("trailModal");
+              const detailsContainer = document.getElementById("trailDetails");
+        
+              // Clear any previous trail details
+              detailsContainer.innerHTML = "";
+        
+              // Create HTML content for the trail details
+              const content = `
+                <p><strong>Start Point:</strong> ${startpoint}</p>
+                <p><strong>Difficulty:</strong> ${trailDetails.difficulty}</p>
+                <p><strong>Trail Data:</strong> ${trailDetails.traildata}</p>
+                <p><strong>Recorded By:</strong> ${trailDetails.recordedby}</p>
+              `;
+              detailsContainer.innerHTML = content;
+        
+              // Show the modal
+              const modalInstance = new bootstrap.Modal(modal);
+              modalInstance.show();
+            })
+            .catch(error => {
+              console.error("Error fetching trail details:", error);
+            });
         }
+        
+        // Function to fetch complete trail details based on the startpoint
+        function fetchTrailDetails(startpoint) {
+          return fetch("get-trail-details.php?startpoint=" + encodeURIComponent(startpoint))
+            .then(response => response.json())
+            .catch(error => {
+              console.error("Error fetching trail details:", error);
+              throw error; // Rethrow the error for handling
+            });
+        }
+
         
     
     window.initMap = initMap;
+    
+    
+    
+    
     
