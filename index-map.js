@@ -98,11 +98,56 @@ var image = "hyk.png";
         }
         
         function handleMarkerClick(trail) {
-  const startpoint = trail.startpoint;
+            const startpoint = trail.startpoint;
   
           // Fetch complete trail details based on the startpoint
           fetchTrailDetails(startpoint)
             .then(trailDetails => {
+              // Create a new map instance for the mini map
+              const miniMap = new google.maps.Map(document.getElementById("map-modal"), {
+                center: { lat: 0, lng: 0 }, // Set initial center as needed
+                zoom: 13,
+              });
+              
+              // Parse the trail data as an array of coordinates
+              const coordinates = JSON.parse(trailDetails.traildata);
+        
+              // Create a polyline and set its path
+              const polyline = new google.maps.Polyline({
+                path: coordinates,
+                geodesic: true,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                map: miniMap,
+              });
+
+            // Create start and end markers
+              const startMarker = new google.maps.Marker({
+                position: coordinates[0],
+                map: miniMap,
+                title: "Start",
+                icon: image,
+              });
+        
+              const endMarker = new google.maps.Marker({
+                position: coordinates[coordinates.length - 1],
+                map: miniMap,
+                title: "End",
+                icon: image,
+              });
+        
+              // Fit the map bounds to show the polyline and markers
+              const bounds = new google.maps.LatLngBounds();
+              bounds.extend(startMarker.getPosition());
+              bounds.extend(endMarker.getPosition());
+              polyline.getPath().forEach(function (latLng) {
+                bounds.extend(latLng);
+              });
+              miniMap.fitBounds(bounds);                
+                
+              
+                
               // Get the modal and details container
               const modal = document.getElementById("trailModal");
               const detailsContainer = document.getElementById("trailDetails");
@@ -114,7 +159,6 @@ var image = "hyk.png";
               const content = `
                 <p><strong>Start Point:</strong> ${startpoint}</p>
                 <p><strong>Difficulty:</strong> ${trailDetails.difficulty}</p>
-                <p><strong>Trail Data:</strong> ${trailDetails.traildata}</p>
                 <p><strong>Recorded By:</strong> ${trailDetails.recordedby}</p>
               `;
               detailsContainer.innerHTML = content;
@@ -141,8 +185,5 @@ var image = "hyk.png";
         
     
     window.initMap = initMap;
-    
-    
-    
     
     
