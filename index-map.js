@@ -1,4 +1,4 @@
-
+<script>
     var image = "hyk.png";
     var mapIcon = "hiking map32.png";
     var trailCoordinates = [];
@@ -179,6 +179,8 @@
                     // Construct the formatted time string
                     var formattedTime = formattedHours + ':' + formattedMinutes + ':' + formattedSeconds;
                     
+                    var distanceT = trailDetails.distance;
+                    var minimized = parseFloat(distanceT).toFixed(2);
                     //var formattedDuration = formatDuration(durationInMillis);
                     //console.log(formattedDuration); // Output: 00:00:05
                   
@@ -186,10 +188,6 @@
                   
                   // Create HTML content for the trail details
                   const content = `
-                    <p><strong>Start Point:</strong> ${startpoint}</p>
-                    <p><strong>Duration:</strong> ${trailDetails.duration}</p>
-                    <p><strong>Recorded By:</strong> ${username}</p>
-                    <br>
                     <div class="wallet-card">
                     <!-- Balance -->
                     
@@ -198,12 +196,12 @@
                     <div class="wallet-footer" style=" border-top: 0px; ">
                         <div class="item" style="display:  flex;">
                             <div class="icon-wrapper bg-light">
-                                <i class="material-icons text-info">local_fire_department</i>
+                                <i class="material-icons text-info">trending_up</i>
                             </div>
                             
                             <div>
-                                <small class="text-secondary">Burns</small>
-                                <strong><h4>180 kcal</h4></strong>    
+                                <small class="text-secondary">Distance</small>
+                                <strong><h4>${minimized} m</h4></strong>    
                             </div>
                         </div>
                         
@@ -220,8 +218,25 @@
                         
                     </div>
                     <!-- * Wallet Footer -->
+                    
                 </div>
                 <br>
+                <h3>Trail details</h3>
+                    <div class="transactions">
+                        <a href="" class="item" style="box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0%);">
+                            <div class="detail">
+                                <img src="${imgurl}" alt="img" class="image-block imaged rounded w48">
+                                <div>
+                                    <strong>${username}</strong>
+                                    <span class="badge trans-green-card text-success">Astartes</span>
+                                </div>
+                            </div>
+                            <div class="right">
+                                <span class="badge trans-grey-card text-info">Follow</span>
+                            </div>
+                        </a>
+                    </div>
+                    <br>
                   `;
                   detailsContainer.innerHTML = content;
             
@@ -264,3 +279,4 @@
     
     
     
+</script>
