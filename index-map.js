@@ -1,3 +1,4 @@
+
     var image = "hyk.png";
     var mapIcon = "hiking map32.png";
     var trailCoordinates = [];
@@ -97,147 +98,142 @@
             });
         }
         
-        function handleMarkerClick(trail) {
+        async function handleMarkerClick(trail) {
           const startpoint = trail.startpoint;
   
           // Fetch complete trail details based on the startpoint
-          fetchTrailDetails(startpoint)
-            .then(trailDetails => {
+            try {
+                    // Fetch complete trail details based on the startpoint
+                    const trailDetails = await fetchTrailDetails(startpoint);
+                
+                    // Fetch user details based on the recordedby reference
+                    const userDetails = await fetchUserDetails(trailDetails.recordedby);
+                    const username = userDetails.username;
+                    const imgurl = userDetails.imgurl; 
+                    
+                     // Create a new map instance for the mini map
+                    const miniMap = new google.maps.Map(document.getElementById("map-modal"), {
+                        center: { lat: 0, lng: 0 }, // Set initial center as needed
+                        zoom: 13,
+                    });
+                    
+                    
+                  
+                  // Parse the trail data as an array of coordinates
+                  const coordinates = JSON.parse(trailDetails.traildata);
             
-              //Establish user variables
-             var username;
-             
-              fetchUserDetails(trailDetails.recordedby)
-              .then(userDetails => {
-                username = userDetails.username;  
-                imgurl = userDetails.imgurl;
-              })
-              .catch ( error => {
-                console.error ("Error fetching details", error);   
-              });
-                
-                
-              // Create a new map instance for the mini map
-              const miniMap = new google.maps.Map(document.getElementById("map-modal"), {
-                center: { lat: 0, lng: 0 }, // Set initial center as needed
-                zoom: 13,
-              });
-              
-             
-              
-              // Parse the trail data as an array of coordinates
-              const coordinates = JSON.parse(trailDetails.traildata);
-        
-              // Create a polyline and set its path
-              const polyline = new google.maps.Polyline({
-                path: coordinates,
-                geodesic: true,
-                strokeColor: "#FF0000",
-                strokeOpacity: 1.0,
-                strokeWeight: 2,
-                map: miniMap,
-              });
-
-            // Create start and end markers
-              const startMarker = new google.maps.Marker({
-                position: coordinates[0],
-                map: miniMap,
-                title: "Start",
-                icon: image,
-              });
-        
-              const endMarker = new google.maps.Marker({
-                position: coordinates[coordinates.length - 1],
-                map: miniMap,
-                title: "End",
-                icon: image,
-              });
-        
-              // Fit the map bounds to show the polyline and markers
-              const bounds = new google.maps.LatLngBounds();
-              bounds.extend(startMarker.getPosition());
-              bounds.extend(endMarker.getPosition());
-              polyline.getPath().forEach(function (latLng) {
-                bounds.extend(latLng);
-              });
-              miniMap.fitBounds(bounds);                
-                
-              
-                
-              // Get the modal and details container
-              const modal = document.getElementById("trailModal");
-              const detailsContainer = document.getElementById("trailDetails");
-        
-              // Clear any previous trail details
-              detailsContainer.innerHTML = "";
-                
-                
-                var durationInMillis = trailDetails.duration; // Replace with your duration in milliseconds
-                var seconds = Math.floor(durationInMillis / 1000);
-                // Calculate hours, minutes, and remaining seconds
-                var hours = Math.floor(seconds / 3600);
-                var minutes = Math.floor((seconds % 3600) / 60);
-                var remainingSeconds = seconds % 60;
-                // Format the time components with leading zeros
-                var formattedHours = hours.toString().padStart(2, '0');
-                var formattedMinutes = minutes.toString().padStart(2, '0');
-                var formattedSeconds = remainingSeconds.toString().padStart(2, '0');
-                // Construct the formatted time string
-                var formattedTime = formattedHours + ':' + formattedMinutes + ':' + formattedSeconds;
-                
-                //var formattedDuration = formatDuration(durationInMillis);
-                //console.log(formattedDuration); // Output: 00:00:05
-              
-                
-              
-              // Create HTML content for the trail details
-              const content = `
-                <p><strong>Start Point:</strong> ${startpoint}</p>
-                <p><strong>Duration:</strong> ${trailDetails.duration}</p>
-                <p><strong>Recorded By:</strong> ${username}</p>
-                <br>
-                <div class="wallet-card">
-                <!-- Balance -->
-                
-                <!-- * Balance -->
-                <!-- Wallet Footer -->
-                <div class="wallet-footer" style=" border-top: 0px; ">
-                    <div class="item" style="display:  flex;">
-                        <div class="icon-wrapper bg-light">
-                            <i class="material-icons text-info">local_fire_department</i>
+                  // Create a polyline and set its path
+                  const polyline = new google.maps.Polyline({
+                    path: coordinates,
+                    geodesic: true,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                    map: miniMap,
+                  });
+    
+                // Create start and end markers
+                  const startMarker = new google.maps.Marker({
+                    position: coordinates[0],
+                    map: miniMap,
+                    title: "Start",
+                    icon: image,
+                  });
+            
+                  const endMarker = new google.maps.Marker({
+                    position: coordinates[coordinates.length - 1],
+                    map: miniMap,
+                    title: "End",
+                    icon: image,
+                  });
+            
+                  // Fit the map bounds to show the polyline and markers
+                  const bounds = new google.maps.LatLngBounds();
+                  bounds.extend(startMarker.getPosition());
+                  bounds.extend(endMarker.getPosition());
+                  polyline.getPath().forEach(function (latLng) {
+                    bounds.extend(latLng);
+                  });
+                  miniMap.fitBounds(bounds);                
+                    
+                  
+                    
+                  // Get the modal and details container
+                  const modal = document.getElementById("trailModal");
+                  const detailsContainer = document.getElementById("trailDetails");
+            
+                  // Clear any previous trail details
+                  detailsContainer.innerHTML = "";
+                    
+                    
+                    var durationInMillis = trailDetails.duration; // Replace with your duration in milliseconds
+                    var seconds = Math.floor(durationInMillis / 1000);
+                    // Calculate hours, minutes, and remaining seconds
+                    var hours = Math.floor(seconds / 3600);
+                    var minutes = Math.floor((seconds % 3600) / 60);
+                    var remainingSeconds = seconds % 60;
+                    // Format the time components with leading zeros
+                    var formattedHours = hours.toString().padStart(2, '0');
+                    var formattedMinutes = minutes.toString().padStart(2, '0');
+                    var formattedSeconds = remainingSeconds.toString().padStart(2, '0');
+                    // Construct the formatted time string
+                    var formattedTime = formattedHours + ':' + formattedMinutes + ':' + formattedSeconds;
+                    
+                    //var formattedDuration = formatDuration(durationInMillis);
+                    //console.log(formattedDuration); // Output: 00:00:05
+                  
+                    
+                  
+                  // Create HTML content for the trail details
+                  const content = `
+                    <p><strong>Start Point:</strong> ${startpoint}</p>
+                    <p><strong>Duration:</strong> ${trailDetails.duration}</p>
+                    <p><strong>Recorded By:</strong> ${username}</p>
+                    <br>
+                    <div class="wallet-card">
+                    <!-- Balance -->
+                    
+                    <!-- * Balance -->
+                    <!-- Wallet Footer -->
+                    <div class="wallet-footer" style=" border-top: 0px; ">
+                        <div class="item" style="display:  flex;">
+                            <div class="icon-wrapper bg-light">
+                                <i class="material-icons text-info">local_fire_department</i>
+                            </div>
+                            
+                            <div>
+                                <small class="text-secondary">Burns</small>
+                                <strong><h4>180 kcal</h4></strong>    
+                            </div>
                         </div>
                         
-                        <div>
-                            <small class="text-secondary">Burns</small>
-                            <strong><h4>180 kcal</h4></strong>    
-                        </div>
-                    </div>
-                    
-                    <div class="item" style="display:  flex;">
-                        <div class="icon-wrapper bg-light">
-                            <i class="material-icons text-info">schedule</i>
+                        <div class="item" style="display:  flex;">
+                            <div class="icon-wrapper bg-light">
+                                <i class="material-icons text-info">schedule</i>
+                            </div>
+                            
+                            <div>
+                                <small class="text-secondary">Duration</small>
+                                <strong><h4>${formattedTime}</h4></strong>    
+                            </div>
                         </div>
                         
-                        <div>
-                            <small class="text-secondary">Duration</small>
-                            <strong><h4>${formattedTime}</h4></strong>    
-                        </div>
                     </div>
-                    
+                    <!-- * Wallet Footer -->
                 </div>
-                <!-- * Wallet Footer -->
-            </div>
-            <br>
-              `;
-              detailsContainer.innerHTML = content;
-        
-              // Show the modal
-              const modalInstance = new bootstrap.Modal(modal);
-              modalInstance.show();
-            })
-            .catch(error => {
-              console.error("Error fetching trail details:", error);
-            });
+                <br>
+                  `;
+                  detailsContainer.innerHTML = content;
+            
+                  // Show the modal
+                  const modalInstance = new bootstrap.Modal(modal);
+                  modalInstance.show();
+                    
+            
+                
+            } catch (error) {
+             console.error("Error handling marker click:", error);
+            }
             
         }
         
@@ -263,5 +259,8 @@
 
     
     window.initMap = initMap;
+    
+    
+    
     
     
